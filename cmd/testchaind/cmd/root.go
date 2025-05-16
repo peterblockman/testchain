@@ -7,6 +7,9 @@ import (
 	"path/filepath"
 	"strings"
 
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
+	// Add wasm client CLI imports
+	wasmcli "github.com/CosmWasm/wasmd/x/wasm/client/cli"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
@@ -34,6 +37,7 @@ import (
 	tmcli "github.com/tendermint/tendermint/libs/cli"
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
+
 	// this line is used by starport scaffolding # root/moduleImport
 
 	"testchain/app"
@@ -82,6 +86,12 @@ func NewRootCmd() (*cobra.Command, appparams.EncodingConfig) {
 	}
 
 	initRootCmd(rootCmd, encodingConfig)
+
+	// DEBUG: Log all registered subcommands under rootCmd to help debug if wasm commands are registered
+	for _, cmd := range rootCmd.Commands() {
+		println("Registered subcommand:", cmd.Use)
+	}
+
 	overwriteFlagDefaults(rootCmd, map[string]string{
 		flags.FlagChainID:        strings.ReplaceAll(app.Name, "-", ""),
 		flags.FlagKeyringBackend: "test",
@@ -162,6 +172,8 @@ func queryCommand() *cobra.Command {
 		rpc.BlockCommand(),
 		authcmd.QueryTxsByEventsCmd(),
 		authcmd.QueryTxCmd(),
+		// Add wasm query commands
+		wasmcli.GetQueryCmd(),
 	)
 
 	app.ModuleBasics.AddQueryCommands(cmd)
@@ -189,6 +201,8 @@ func txCommand() *cobra.Command {
 		authcmd.GetBroadcastCommand(),
 		authcmd.GetEncodeCommand(),
 		authcmd.GetDecodeCommand(),
+		// Add wasm tx commands
+		wasmcli.GetTxCmd(),
 	)
 
 	app.ModuleBasics.AddTxCommands(cmd)
@@ -293,6 +307,12 @@ func (a appCreator) newApp(
 		cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod)),
 		a.encodingConfig,
 		appOpts,
+		[]wasmkeeper.Option{
+			func() wasmkeeper.Option {
+				cfg := wasmkeeper.DefaultGasRegisterConfig()
+				return wasmkeeper.WithGasRegister(wasmkeeper.NewWasmGasRegister(cfg))
+			}(),
+		},
 		baseapp.SetPruning(pruningOpts),
 		baseapp.SetMinGasPrices(cast.ToString(appOpts.Get(server.FlagMinGasPrices))),
 		baseapp.SetMinRetainBlocks(cast.ToUint64(appOpts.Get(server.FlagMinRetainBlocks))),
@@ -302,8 +322,8 @@ func (a appCreator) newApp(
 		baseapp.SetTrace(cast.ToBool(appOpts.Get(server.FlagTrace))),
 		baseapp.SetIndexEvents(cast.ToStringSlice(appOpts.Get(server.FlagIndexEvents))),
 		baseapp.SetSnapshot(snapshotStore, snapshotOptions),
-        baseapp.SetIAVLCacheSize(cast.ToInt(appOpts.Get(server.FlagIAVLCacheSize))),
-        baseapp.SetIAVLDisableFastNode(cast.ToBool(appOpts.Get(server.FlagIAVLFastNode))),
+		baseapp.SetIAVLCacheSize(cast.ToInt(appOpts.Get(server.FlagIAVLCacheSize))),
+		baseapp.SetIAVLDisableFastNode(cast.ToBool(appOpts.Get(server.FlagIAVLFastNode))),
 	)
 }
 
@@ -332,6 +352,12 @@ func (a appCreator) appExport(
 		uint(1),
 		a.encodingConfig,
 		appOpts,
+		[]wasmkeeper.Option{
+			func() wasmkeeper.Option {
+				cfg := wasmkeeper.DefaultGasRegisterConfig()
+				return wasmkeeper.WithGasRegister(wasmkeeper.NewWasmGasRegister(cfg))
+			}(),
+		},
 	)
 
 	if height != -1 {

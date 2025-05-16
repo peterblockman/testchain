@@ -7,6 +7,7 @@ import (
 
 	"testchain/app"
 
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
@@ -59,6 +60,14 @@ func DefaultConfig() network.Config {
 				val.Ctx.Logger, tmdb.NewMemDB(), nil, true, map[int64]bool{}, val.Ctx.Config.RootDir, 0,
 				encoding,
 				simapp.EmptyAppOptions{},
+				[]wasmkeeper.Option{
+					func() wasmkeeper.Option {
+						cfg := wasmkeeper.DefaultGasRegisterConfig()
+						fmt.Printf("Using WasmGasRegisterConfig: %+v\n", cfg)
+						return wasmkeeper.WithGasRegister(wasmkeeper.NewWasmGasRegister(cfg))
+					}(),
+				},
+
 				baseapp.SetPruning(pruningtypes.NewPruningOptionsFromString(val.AppConfig.Pruning)),
 				baseapp.SetMinGasPrices(val.AppConfig.MinGasPrices),
 			)

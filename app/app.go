@@ -96,25 +96,31 @@ import (
 	ibcporttypes "github.com/cosmos/ibc-go/v5/modules/core/05-port/types"
 	ibchost "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 	ibckeeper "github.com/cosmos/ibc-go/v5/modules/core/keeper"
+	"github.com/ignite/cli/ignite/pkg/openapiconsole"
 	"github.com/spf13/cast"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	"github.com/tendermint/tendermint/libs/log"
 	tmos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
-	"github.com/ignite/cli/ignite/pkg/openapiconsole"
 
 	testchainmodule "testchain/x/testchain"
-		testchainmodulekeeper "testchain/x/testchain/keeper"
-		testchainmoduletypes "testchain/x/testchain/types"
-// this line is used by starport scaffolding # stargate/app/moduleImport
+	testchainmodulekeeper "testchain/x/testchain/keeper"
+	testchainmoduletypes "testchain/x/testchain/types"
 
-	"testchain/docs"
+	// wasm
+
+	"github.com/CosmWasm/wasmd/x/wasm"
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
+
+	// this line is used by starport scaffolding # stargate/app/moduleImport
+
 	appparams "testchain/app/params"
+	"testchain/docs"
 )
 
 const (
-	AccountAddressPrefix = "cosmos"
+	AccountAddressPrefix = "shareledger"
 	Name                 = "testchain"
 )
 
@@ -166,7 +172,8 @@ var (
 		ica.AppModuleBasic{},
 		vesting.AppModuleBasic{},
 		testchainmodule.AppModuleBasic{},
-// this line is used by starport scaffolding # stargate/app/moduleBasic
+		wasm.AppModuleBasic{},
+		// this line is used by starport scaffolding # stargate/app/moduleBasic
 	)
 
 	// module account permissions
@@ -179,6 +186,7 @@ var (
 		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:            {authtypes.Burner},
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
+		wasm.ModuleName:                {authtypes.Burner},
 		// this line is used by starport scaffolding # stargate/app/maccPerms
 	}
 )
@@ -233,15 +241,17 @@ type App struct {
 	ICAHostKeeper    icahostkeeper.Keeper
 	FeeGrantKeeper   feegrantkeeper.Keeper
 	GroupKeeper      groupkeeper.Keeper
+	// wasm
+	WasmKeeper wasmkeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 	ScopedICAHostKeeper  capabilitykeeper.ScopedKeeper
+	ScopedWasmKeeper     capabilitykeeper.ScopedKeeper
 
-	
-		TestchainKeeper testchainmodulekeeper.Keeper
-// this line is used by starport scaffolding # stargate/app/keeperDeclaration
+	TestchainKeeper testchainmodulekeeper.Keeper
+	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
 
 	// mm is the module manager
 	mm *module.Manager
@@ -262,6 +272,7 @@ func New(
 	invCheckPeriod uint,
 	encodingConfig appparams.EncodingConfig,
 	appOpts servertypes.AppOptions,
+	wasmOpts []wasmkeeper.Option,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *App {
 	appCodec := encodingConfig.Marshaler
@@ -286,7 +297,8 @@ func New(
 		ibctransfertypes.StoreKey, icahosttypes.StoreKey, capabilitytypes.StoreKey, group.StoreKey,
 		icacontrollertypes.StoreKey,
 		testchainmoduletypes.StoreKey,
-// this line is used by starport scaffolding # stargate/app/storeKey
+		wasm.StoreKey,
+		// this line is used by starport scaffolding # stargate/app/storeKey
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -324,6 +336,7 @@ func New(
 	scopedICAControllerKeeper := app.CapabilityKeeper.ScopeToModule(icacontrollertypes.SubModuleName)
 	scopedTransferKeeper := app.CapabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
 	scopedICAHostKeeper := app.CapabilityKeeper.ScopeToModule(icahosttypes.SubModuleName)
+	scopedWasmKeeper := app.CapabilityKeeper.ScopeToModule(wasm.ModuleName)
 	// this line is used by starport scaffolding # stargate/app/scopedKeeper
 
 	// add keepers
@@ -483,6 +496,38 @@ func New(
 	// If evidence needs to be handled for the app, set routes in router here and seal
 	app.EvidenceKeeper = *evidenceKeeper
 
+	// wasm keeper
+	wasmDir := filepath.Join(homePath, "wasm")
+	wasmConfig, err := wasm.ReadWasmConfig(appOpts)
+	if err != nil {
+		panic(fmt.Sprintf("error while reading wasm config: %s", err))
+	}
+
+	// wasmOpts := []wasmkeeper.Option{
+	// 	wasmkeeper.WithGasRegister(wasmkeeper.NewWasmGasRegister()),
+	// }
+
+	availableCapabilities := "iterator,staking,stargate,cosmwasm_1_1"
+	app.WasmKeeper = wasm.NewKeeper(
+		appCodec,
+		keys[wasm.StoreKey],
+		app.GetSubspace(wasm.ModuleName),
+		app.AccountKeeper,
+		app.BankKeeper,
+		app.StakingKeeper,
+		app.DistrKeeper,
+		app.IBCKeeper.ChannelKeeper,
+		&app.IBCKeeper.PortKeeper,
+		scopedWasmKeeper,
+		app.TransferKeeper,
+		app.MsgServiceRouter(),
+		app.GRPCQueryRouter(),
+		wasmDir,
+		wasmConfig,
+		availableCapabilities,
+		wasmOpts...,
+	)
+
 	govRouter := govv1beta1.NewRouter()
 	govRouter.
 		AddRoute(govtypes.RouterKey, govv1beta1.ProposalHandler).
@@ -503,17 +548,15 @@ func New(
 		govConfig,
 	)
 
-	
-		app.TestchainKeeper = *testchainmodulekeeper.NewKeeper(
-			appCodec,
-			keys[testchainmoduletypes.StoreKey],
-			keys[testchainmoduletypes.MemStoreKey],
-			app.GetSubspace(testchainmoduletypes.ModuleName),
-			
-			)
-		testchainModule := testchainmodule.NewAppModule(appCodec, app.TestchainKeeper, app.AccountKeeper, app.BankKeeper)
+	app.TestchainKeeper = *testchainmodulekeeper.NewKeeper(
+		appCodec,
+		keys[testchainmoduletypes.StoreKey],
+		keys[testchainmoduletypes.MemStoreKey],
+		app.GetSubspace(testchainmoduletypes.ModuleName),
+	)
+	testchainModule := testchainmodule.NewAppModule(appCodec, app.TestchainKeeper, app.AccountKeeper, app.BankKeeper)
 
-		// this line is used by starport scaffolding # stargate/app/keeperDefinition
+	// this line is used by starport scaffolding # stargate/app/keeperDefinition
 
 	// Sealing prevents other modules from creating scoped sub-keepers
 	app.CapabilityKeeper.Seal()
@@ -559,7 +602,8 @@ func New(
 		transferModule,
 		icaModule,
 		testchainModule,
-// this line is used by starport scaffolding # stargate/app/appModule
+		wasm.NewAppModule(appCodec, &app.WasmKeeper, app.StakingKeeper, app.AccountKeeper, app.BankKeeper),
+		// this line is used by starport scaffolding # stargate/app/appModule
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -589,7 +633,8 @@ func New(
 		paramstypes.ModuleName,
 		vestingtypes.ModuleName,
 		testchainmoduletypes.ModuleName,
-// this line is used by starport scaffolding # stargate/app/beginBlockers
+		wasm.ModuleName,
+		// this line is used by starport scaffolding # stargate/app/beginBlockers
 	)
 
 	app.mm.SetOrderEndBlockers(
@@ -614,7 +659,8 @@ func New(
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
 		testchainmoduletypes.ModuleName,
-// this line is used by starport scaffolding # stargate/app/endBlockers
+		wasm.ModuleName,
+		// this line is used by starport scaffolding # stargate/app/endBlockers
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -644,7 +690,8 @@ func New(
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
 		testchainmoduletypes.ModuleName,
-// this line is used by starport scaffolding # stargate/app/initGenesis
+		wasm.ModuleName,
+		// this line is used by starport scaffolding # stargate/app/initGenesis
 	)
 
 	// Uncomment if you want to set a custom migration order here.
@@ -674,7 +721,8 @@ func New(
 		ibc.NewAppModule(app.IBCKeeper),
 		transferModule,
 		testchainModule,
-// this line is used by starport scaffolding # stargate/app/appModule
+		wasm.NewAppModule(appCodec, &app.WasmKeeper, app.StakingKeeper, app.AccountKeeper, app.BankKeeper),
+		// this line is used by starport scaffolding # stargate/app/appModule
 	)
 	app.sm.RegisterStoreDecoders()
 
@@ -873,7 +921,9 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(icacontrollertypes.SubModuleName)
 	paramsKeeper.Subspace(icahosttypes.SubModuleName)
 	paramsKeeper.Subspace(testchainmoduletypes.ModuleName)
-// this line is used by starport scaffolding # stargate/app/paramSubspace
+	paramsKeeper.Subspace(wasm.ModuleName)
+	fmt.Println("Initialized params subspace for wasm module")
+	// this line is used by starport scaffolding # stargate/app/paramSubspace
 
 	return paramsKeeper
 }

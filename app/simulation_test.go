@@ -1,6 +1,7 @@
 package app_test
 
 import (
+	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -14,6 +15,8 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 
 	"testchain/app"
+
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 )
 
 func init() {
@@ -67,6 +70,13 @@ func BenchmarkSimulation(b *testing.B) {
 		0,
 		encoding,
 		simapp.EmptyAppOptions{},
+		[]wasmkeeper.Option{
+			func() wasmkeeper.Option {
+				cfg := wasmkeeper.DefaultGasRegisterConfig()
+				fmt.Printf("Using WasmGasRegisterConfig: %+v\n", cfg)
+				return wasmkeeper.WithGasRegister(wasmkeeper.NewWasmGasRegister(cfg))
+			}(),
+		},
 	)
 
 	// Run randomized simulations
