@@ -3,6 +3,30 @@
 
 ## Get started
 
+create a config.yml file in the root of the project
+```yml
+version: 1
+accounts:
+  - name: alice
+    coins: ["20000token", "200000000stake"]
+  - name: bob
+    coins: ["10000token", "100000000stake"]
+validators:
+  - name: alice
+    bonded: "100000000stake"
+client:
+  openapi:
+    path: "docs/static/openapi.yml"
+  typescript:
+    path: "ts-client"
+  vuex:
+    path: "vue/src/store"
+faucet:
+  name: bob
+  coins: ["5token", "100000stake"]
+```
+
+Then run the blockchain
 ```
 ignite chain serve
 ```
