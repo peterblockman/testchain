@@ -1406,8 +1406,8 @@ github.com/tendermint/go-amino v0.16.0 h1:GyhmgQKvqF82e2oZeuMSp9JTN0N09emoSZlb2l
 github.com/tendermint/go-amino v0.16.0/go.mod h1:TQU0M1i/ImAo+tYpZi73AU3V/dKeCoMC9Sphe2ZwGME=
 github.com/tendermint/spn v0.2.1-0.20220921200247-8bafad876bdd h1:Sp1MgPWq73/a8WVJvE/B6/xOt7cXEzLFT/+KBtIiuk8=
 github.com/tendermint/spn v0.2.1-0.20220921200247-8bafad876bdd/go.mod h1:p4b3ZAVTgLGxIpXZsXVeQuOxVUk1/kcwBIIlOMTZtsE=
-github.com/tendermint/tendermint v0.34.22 h1:XMhtC8s8QqJO4l/dn+TkQvevTRSow3Vixjclr41o+2Q=
-github.com/tendermint/tendermint v0.34.22/go.mod h1:YpP5vBEAKUT4g6oyfjKgFeZmdB/GjkJAxfF+cgmJg6Y=
+github.com/cometbft/cometbft v0.34.22 h1:XMhtC8s8QqJO4l/dn+TkQvevTRSow3Vixjclr41o+2Q=
+github.com/cometbft/cometbft v0.34.22/go.mod h1:YpP5vBEAKUT4g6oyfjKgFeZmdB/GjkJAxfF+cgmJg6Y=
 github.com/tendermint/tm-db v0.6.7 h1:fE00Cbl0jayAoqlExN6oyQJ7fR/ZtoVOmvPJ//+shu8=
 github.com/tendermint/tm-db v0.6.7/go.mod h1:byQDzFkZV1syXr/ReXS808NxA2xvyuuVgXOJ/088L6I=
 github.com/tidwall/gjson v1.12.1/go.mod h1:/wbyibRr2FHMks5tjHJ5F8dMZh3AcwJEMf5vlfC0lxk=

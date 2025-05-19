@@ -7,8 +7,8 @@ go 1.23
 require (
 	github.com/CosmWasm/wasmd v0.55.0
 	github.com/cosmos/cosmos-sdk v0.53.0
-	github.com/cosmos/ibc-go/v5 v5.0.1
-	github.com/gogo/protobuf v1.3.3
+	github.com/cosmos/ibc-go/v10 v10.2.0
+	github.com/gogo/protobuf v1.3.2
 	github.com/golang/protobuf v1.5.4
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/ignite/cli v0.25.0
@@ -16,12 +16,14 @@ require (
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.0
-	github.com/tendermint/tendermint v0.34.22
-	// github.com/tendermint/tm-db v0.6.7
+	github.com/cometbft/cometbft v0.38.17
+	github.com/cometbft/cometbft-db v0.14.1
 	google.golang.org/genproto v0.0.0-20220822174746-9e6da59bd2fc
 	google.golang.org/grpc v1.70.0
 	gopkg.in/yaml.v2 v2.4.0
 	cosmossdk.io/store v1.1.2
+	cosmossdk.io/x/evidence v0.2.0
+	cosmossdk.io/x/upgrade v0.2.0
 )
 
 require (
@@ -219,4 +221,7 @@ replace (
 	golang.org/x/oauth2 v0.27.0 => golang.org/x/oauth2 v0.26.0
 	google.golang.org/grpc v1.70.0 => google.golang.org/grpc v1.47.0
 	github.com/cosmos/cosmos-sdk/store => cosmossdk.io/store v1.1.2
+	github.com/cosmos/cosmos-sdk/x/evidence => cosmossdk.io/x/evidence v0.2.0
+	github.com/cosmos/cosmos-sdk/x/feegrant => cosmossdk.io/x/feegrant v0.2.0
+	github.com/cosmos/cosmos-sdk/x/upgrade => cosmossdk.io/x/upgrade v0.2.0
 )
