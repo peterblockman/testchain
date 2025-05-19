@@ -5,8 +5,8 @@ go 1.23
 // toolchain go1.24.3
 
 require (
-	github.com/CosmWasm/wasmd v0.27.0
-	github.com/cosmos/cosmos-sdk v0.46.3
+	github.com/CosmWasm/wasmd v0.55.0
+	github.com/cosmos/cosmos-sdk v0.53.0
 	github.com/cosmos/ibc-go/v5 v5.0.1
 	github.com/gogo/protobuf v1.3.3
 	github.com/golang/protobuf v1.5.4
@@ -17,10 +17,11 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.0
 	github.com/tendermint/tendermint v0.34.22
-	github.com/tendermint/tm-db v0.6.7
+	// github.com/tendermint/tm-db v0.6.7
 	google.golang.org/genproto v0.0.0-20220822174746-9e6da59bd2fc
 	google.golang.org/grpc v1.70.0
 	gopkg.in/yaml.v2 v2.4.0
+	cosmossdk.io/store v1.1.2
 )
 
 require (
@@ -211,10 +212,11 @@ require (
 )
 
 replace (
-	github.com/CosmWasm/wasmd => github.com/notional-labs/wasmd v0.29.0-sdk46.0.20221108144812-0abadd1ee929
+	// github.com/CosmWasm/wasmd => github.com/notional-labs/wasmd v0.29.0-sdk46.0.20221108144812-0abadd1ee929
 	github.com/confio/ics23/go => github.com/cosmos/cosmos-sdk/ics23/go v0.8.0
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.3 => github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.1
 	golang.org/x/oauth2 v0.27.0 => golang.org/x/oauth2 v0.26.0
 	google.golang.org/grpc v1.70.0 => google.golang.org/grpc v1.47.0
+	github.com/cosmos/cosmos-sdk/store => cosmossdk.io/store v1.1.2
 )

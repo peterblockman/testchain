@@ -7,16 +7,19 @@ import (
 	"os"
 	"path/filepath"
 
+	"cosmossdk.io/depinject"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/cosmos/cosmos-sdk/simapp"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+
+	// "github.com/cosmos/cosmos-sdk/simapp"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -102,7 +105,8 @@ import (
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	"github.com/tendermint/tendermint/libs/log"
 	tmos "github.com/tendermint/tendermint/libs/os"
-	dbm "github.com/tendermint/tm-db"
+
+	// dbm "github.com/tendermint/tm-db"
 
 	testchainmodule "testchain/x/testchain"
 	testchainmodulekeeper "testchain/x/testchain/keeper"
@@ -120,8 +124,22 @@ import (
 )
 
 const (
+	// Name is the name of the application.
+	Name = "testchain"
+	// AccountAddressPrefix is the prefix for accounts addresses.
 	AccountAddressPrefix = "shareledger"
-	Name                 = "testchain"
+	// ChainCoinType is the coin type of the chain.
+	ChainCoinType = 118
+)
+
+// var (
+// 	// DefaultNodeHome default home directories for the application daemon
+// 	DefaultNodeHome string
+// )
+
+var (
+	_ runtime.AppI            = (*App)(nil)
+	_ servertypes.Application = (*App)(nil)
 )
 
 // this line is used by starport scaffolding # stargate/wasm/app/enabledProposals
@@ -193,7 +211,8 @@ var (
 
 var (
 	_ servertypes.Application = (*App)(nil)
-	_ simapp.App              = (*App)(nil)
+	// _ simapp.App              = (*App)(nil)
+	_ servertypes.Application = (*App)(nil)
 )
 
 func init() {
@@ -259,6 +278,23 @@ type App struct {
 	// sm is the simulation manager
 	sm           *module.SimulationManager
 	configurator module.Configurator
+}
+
+// AppConfig returns the default app config.
+func AppConfig() depinject.Config {
+	return depinject.Configs(
+		appConfig,
+		// Alternatively, load the app config from a YAML file.
+		// appconfig.LoadYAML(AppConfigYAML),
+		depinject.Supply(
+			// supply custom module basics
+			map[string]module.AppModuleBasic{
+				genutiltypes.ModuleName: genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
+				govtypes.ModuleName:     gov.NewAppModuleBasic(getGovProposalHandlers()),
+				// this line is used by starport scaffolding # stargate/appConfig/moduleBasic
+			},
+		),
+	)
 }
 
 // New returns a reference to an initialized blockchain app
