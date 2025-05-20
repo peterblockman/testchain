@@ -8,6 +8,7 @@ toolchain go1.24.3
 
 require (
 	cosmossdk.io/api v0.9.2
+	cosmossdk.io/client/v2 v2.0.0-beta.6
 	cosmossdk.io/core v0.11.3
 	cosmossdk.io/depinject v1.2.0
 	cosmossdk.io/store v1.1.2
@@ -19,6 +20,8 @@ require (
 	github.com/CosmWasm/wasmd v0.55.0
 	github.com/cometbft/cometbft v0.38.17
 	github.com/cometbft/cometbft-db v0.14.1
+	github.com/cometbft/cometbft/api v1.0.0
+	github.com/cosmos/cosmos-db v1.1.1
 	github.com/cosmos/cosmos-sdk v0.53.0
 	github.com/cosmos/ibc-go/v10 v10.2.0
 	github.com/gogo/protobuf v1.3.3
@@ -79,7 +82,6 @@ require (
 	github.com/cockroachdb/redact v1.1.6 // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 // indirect
 	github.com/cosmos/btcutil v1.0.5 // indirect
-	github.com/cosmos/cosmos-db v1.1.1 // indirect
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5 // indirect
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gogogateway v1.2.0 // indirect

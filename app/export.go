@@ -4,46 +4,79 @@ import (
 	"encoding/json"
 	"log"
 
+	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 )
 
+// // ExportAppStateAndValidators exports the state of the application for a genesis
+// // file.
+// func (app *App) ExportAppStateAndValidators(
+// 	forZeroHeight bool, jailAllowedAddrs []string,
+// ) (servertypes.ExportedApp, error) {
+// 	// as if they could withdraw from the start of the next block
+// 	ctx := app.NewContext(true, tmproto.Header{Height: app.LastBlockHeight()})
+
+// 	// We export at last height + 1, because that's the height at which
+// 	// Tendermint will start InitChain.
+// 	height := app.LastBlockHeight() + 1
+// 	if forZeroHeight {
+// 		height = 0
+// 		app.prepForZeroHeightGenesis(ctx, jailAllowedAddrs)
+// 	}
+
+// 	genState := app.mm.ExportGenesis(ctx, app.appCodec)
+// 	appState, err := json.MarshalIndent(genState, "", "  ")
+// 	if err != nil {
+// 		return servertypes.ExportedApp{}, err
+// 	}
+
+//		validators, err := staking.WriteValidators(ctx, app.StakingKeeper)
+//		if err != nil {
+//			return servertypes.ExportedApp{}, err
+//		}
+//		return servertypes.ExportedApp{
+//			AppState:        appState,
+//			Validators:      validators,
+//			Height:          height,
+//			ConsensusParams: app.BaseApp.GetConsensusParams(ctx),
+//		}, nil
+//	}
+//
 // ExportAppStateAndValidators exports the state of the application for a genesis
 // file.
-func (app *App) ExportAppStateAndValidators(
-	forZeroHeight bool, jailAllowedAddrs []string,
-) (servertypes.ExportedApp, error) {
+func (app *App) ExportAppStateAndValidators(forZeroHeight bool, jailAllowedAddrs, modulesToExport []string) (servertypes.ExportedApp, error) {
 	// as if they could withdraw from the start of the next block
-	ctx := app.NewContext(true, tmproto.Header{Height: app.LastBlockHeight()})
+	ctx := app.NewContextLegacy(true, cmtproto.Header{Height: app.LastBlockHeight()})
 
 	// We export at last height + 1, because that's the height at which
-	// Tendermint will start InitChain.
+	// CometBFT will start InitChain.
 	height := app.LastBlockHeight() + 1
 	if forZeroHeight {
 		height = 0
 		app.prepForZeroHeightGenesis(ctx, jailAllowedAddrs)
 	}
 
-	genState := app.mm.ExportGenesis(ctx, app.appCodec)
+	genState, err := app.ModuleManager.ExportGenesisForModules(ctx, app.appCodec, modulesToExport)
+	if err != nil {
+		return servertypes.ExportedApp{}, err
+	}
+
 	appState, err := json.MarshalIndent(genState, "", "  ")
 	if err != nil {
 		return servertypes.ExportedApp{}, err
 	}
 
 	validators, err := staking.WriteValidators(ctx, app.StakingKeeper)
-	if err != nil {
-		return servertypes.ExportedApp{}, err
-	}
 	return servertypes.ExportedApp{
 		AppState:        appState,
 		Validators:      validators,
 		Height:          height,
-		ConsensusParams: app.BaseApp.GetConsensusParams(ctx),
-	}, nil
+		ConsensusParams: app.GetConsensusParams(ctx),
+	}, err
 }
 
 // prepare for fresh start at zero height

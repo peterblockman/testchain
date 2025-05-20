@@ -53,9 +53,9 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
 	"google.golang.org/protobuf/types/known/durationpb"
 
-	sdknewmodulev1 "sdknew/api/sdknew/sdknew/module"
-	_ "sdknew/x/sdknew/module" // import for side-effects
-	sdknewmoduletypes "sdknew/x/sdknew/types"
+	testchainmodulev1 "testchain/api/testchain/testchain/module"
+	_ "testchain/x/testchain/module" // import for side-effects
+	testchainmoduletypes "testchain/x/testchain/types"
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 )
 
@@ -91,7 +91,7 @@ var (
 		circuittypes.ModuleName,
 		wasmtypes.ModuleName,
 		// chain modules
-		sdknewmoduletypes.ModuleName,
+		testchainmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
 	}
 
@@ -115,7 +115,7 @@ var (
 		icatypes.ModuleName,
 		wasmtypes.ModuleName,
 		// chain modules
-		sdknewmoduletypes.ModuleName,
+		testchainmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/beginBlockers
 	}
 
@@ -136,7 +136,7 @@ var (
 		wasmtypes.ModuleName,
 
 		// chain modules
-		sdknewmoduletypes.ModuleName,
+		testchainmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/endBlockers
 	}
 
@@ -303,8 +303,8 @@ var (
 				Config: appconfig.WrapAny(&circuitmodulev1.Module{}),
 			},
 			{
-				Name:   sdknewmoduletypes.ModuleName,
-				Config: appconfig.WrapAny(&sdknewmodulev1.Module{}),
+				Name:   testchainmoduletypes.ModuleName,
+				Config: appconfig.WrapAny(&testchainmodulev1.Module{}),
 			},
 
 			// this line is used by starport scaffolding # stargate/app/moduleConfig
