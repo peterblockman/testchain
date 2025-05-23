@@ -9,7 +9,6 @@ import (
 	// "github.com/cosmos/cosmos-sdk/simapp"
 	"github.com/cosmos/cosmos-sdk/testutil/network"
 	"github.com/stretchr/testify/require"
-	tmdb "github.com/cometbft/cometbft-db"
 )
 
 type (

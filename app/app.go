@@ -83,17 +83,35 @@ import (
 	// dbm "github.com/cometbft/cometbft-db"
 	dbm "github.com/cosmos/cosmos-db"
 	consensuskeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
-	_ "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts" // import for side-effects
 	icacontrollerkeeper "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller/keeper"
 	icahostkeeper "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/keeper"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v10/modules/apps/transfer/keeper"
 	ibckeeper "github.com/cosmos/ibc-go/v10/modules/core/keeper"
 
-	testchainmodulekeeper "testchain/x/testchain/keeper"
-
 	// wasm
 
+	testchainmodulekeeper "testchain/x/testchain/keeper"
+
+	_ "cosmossdk.io/api/cosmos/tx/config/v1" // import for side-effects
+	_ "cosmossdk.io/x/circuit"               // import for side-effects
+	_ "cosmossdk.io/x/evidence"              // import for side-effects
+	_ "cosmossdk.io/x/feegrant/module"       // import for side-effects
+	_ "cosmossdk.io/x/nft/module"            // import for side-effects
+	_ "cosmossdk.io/x/upgrade"               // import for side-effects
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
+	_ "github.com/cosmos/cosmos-sdk/x/auth/tx/config"                    // import for side-effects
+	_ "github.com/cosmos/cosmos-sdk/x/auth/vesting"                      // import for side-effects
+	_ "github.com/cosmos/cosmos-sdk/x/authz/module"                      // import for side-effects
+	_ "github.com/cosmos/cosmos-sdk/x/bank"                              // import for side-effects
+	_ "github.com/cosmos/cosmos-sdk/x/consensus"                         // import for side-effects
+	_ "github.com/cosmos/cosmos-sdk/x/crisis"                            // import for side-effects
+	_ "github.com/cosmos/cosmos-sdk/x/distribution"                      // import for side-effects
+	_ "github.com/cosmos/cosmos-sdk/x/group/module"                      // import for side-effects
+	_ "github.com/cosmos/cosmos-sdk/x/mint"                              // import for side-effects
+	_ "github.com/cosmos/cosmos-sdk/x/params"                            // import for side-effects
+	_ "github.com/cosmos/cosmos-sdk/x/slashing"                          // import for side-effects
+	_ "github.com/cosmos/cosmos-sdk/x/staking"                           // import for side-effects
+	_ "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts" // import for side-effects
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 )
 
@@ -388,6 +406,9 @@ func New(
 		&app.NFTKeeper,
 		&app.GroupKeeper,
 		&app.CircuitBreakerKeeper,
+		&app.TestchainKeeper,
+		&app.TestchainKeeper,
+		&app.TestchainKeeper,
 		&app.TestchainKeeper,
 		// this line is used by starport scaffolding # stargate/app/keeperDefinition
 	); err != nil {

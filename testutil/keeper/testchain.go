@@ -21,7 +21,7 @@ import (
 	"testchain/x/testchain/types"
 )
 
-func SdknewKeeper(t testing.TB) (keeper.Keeper, sdk.Context) {
+func TestchainKeeper(t testing.TB) (keeper.Keeper, sdk.Context) {
 	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
 
 	db := dbm.NewMemDB()
