@@ -6,6 +6,7 @@ import (
 
 	clienthelpers "cosmossdk.io/client/v2/helpers"
 	"cosmossdk.io/depinject"
+	"cosmossdk.io/log"
 	circuitkeeper "cosmossdk.io/x/circuit/keeper"
 	nftkeeper "cosmossdk.io/x/nft/keeper"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -29,7 +30,6 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	evidencekeeper "cosmossdk.io/x/evidence/keeper"
 	abci "github.com/cometbft/cometbft/abci/types"
-	"github.com/cometbft/cometbft/libs/log"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -57,6 +57,8 @@ import (
 	groupkeeper "github.com/cosmos/cosmos-sdk/x/group/keeper"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
+	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
+	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 
@@ -92,10 +94,7 @@ import (
 	// wasm
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-
 	// this line is used by starport scaffolding # stargate/app/moduleImport
-
-	appparams "testchain/app/params"
 )
 
 const (
@@ -133,8 +132,8 @@ type App struct {
 	MintKeeper     mintkeeper.Keeper
 	GovKeeper      *govkeeper.Keeper
 	// CrisisKeeper         *crisiskeeper.Keeper
-	UpgradeKeeper *upgradekeeper.Keeper
-	// ParamsKeeper         paramskeeper.Keeper
+	UpgradeKeeper        *upgradekeeper.Keeper
+	ParamsKeeper         paramskeeper.Keeper
 	AuthzKeeper          authzkeeper.Keeper
 	EvidenceKeeper       evidencekeeper.Keeper
 	FeeGrantKeeper       feegrantkeeper.Keeper
@@ -299,15 +298,11 @@ func AppConfig() depinject.Config {
 // New returns a reference to an initialized blockchain app
 func New(
 	logger log.Logger,
-	db dbm.DB, // replace
+	db dbm.DB,
+	// apture trace information from the application. An io.Writer to collects debugging or performance information during execution
 	traceStore io.Writer,
 	loadLatest bool,
-	skipUpgradeHeights map[int64]bool,
-	homePath string,
-	invCheckPeriod uint,
-	encodingConfig appparams.EncodingConfig,
 	appOpts servertypes.AppOptions,
-	wasmOpts []wasmkeeper.Option,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) (*App, error) {
 	// appCodec := encodingConfig.Marshaler
@@ -386,7 +381,7 @@ func New(
 		&app.GovKeeper,
 		// &app.CrisisKeeper,
 		&app.UpgradeKeeper,
-		// &app.ParamsKeeper,
+		&app.ParamsKeeper,
 		&app.AuthzKeeper,
 		&app.EvidenceKeeper,
 		&app.FeeGrantKeeper,
@@ -877,7 +872,7 @@ func New(
 		ante.HandlerOptions{
 			AccountKeeper:   app.AccountKeeper,
 			BankKeeper:      app.BankKeeper,
-			SignModeHandler: encodingConfig.TxConfig.SignModeHandler(),
+			SignModeHandler: app.txConfig.SignModeHandler(),
 			FeegrantKeeper:  app.FeeGrantKeeper,
 			SigGasConsumer:  ante.DefaultSigVerificationGasConsumer,
 		},
@@ -1018,6 +1013,12 @@ func (app *App) kvStoreKeys() map[string]*storetypes.KVStoreKey {
 	}
 
 	return keys
+}
+
+// GetSubspace returns a param subspace for a given module name.
+func (app *App) GetSubspace(moduleName string) paramstypes.Subspace {
+	subspace, _ := app.ParamsKeeper.GetSubspace(moduleName)
+	return subspace
 }
 
 func (app *App) GetIBCKeeper() *ibckeeper.Keeper {

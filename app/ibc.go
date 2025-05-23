@@ -53,6 +53,7 @@ func (app *App) registerIBCModules(appOpts servertypes.AppOptions) error {
 	// register the key tables for legacy param subspaces
 	keyTable := ibcclienttypes.ParamKeyTable()
 	keyTable.RegisterParamSet(&ibcconnectiontypes.Params{})
+	// TODO: add back params keeper
 	app.ParamsKeeper.Subspace(ibcexported.ModuleName).WithKeyTable(keyTable)
 	app.ParamsKeeper.Subspace(ibctransfertypes.ModuleName).WithKeyTable(ibctransfertypes.ParamKeyTable())
 	app.ParamsKeeper.Subspace(icacontrollertypes.SubModuleName).WithKeyTable(icacontrollertypes.ParamKeyTable())
