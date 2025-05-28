@@ -7,3 +7,4 @@ release/
 wasmfiles/
 output.*
 config.yml
+app/wasm
